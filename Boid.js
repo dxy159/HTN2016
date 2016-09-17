@@ -1,11 +1,12 @@
 // Boid class taken from https://p5js.org/examples/demos/Hello_P5_Flocking.php and slightly modified
 // Methods for Separation, Cohesion, Alignment added
-function Boid(x, y) {
+function Boid(x, y,id) {
+  this.alive=1;
   this.acceleration = createVector(0, 0);
   this.velocity = p5.Vector.random2D();
   this.position = createVector(x, y);
   this.r = 3.0;
-  this.maxspeed = 3;    // Maximum speed
+  this.maxspeed = 2;    // Maximum speed
   this.maxforce = 0.05; // Maximum steering force
 }
 
@@ -16,6 +17,13 @@ Boid.prototype.run = function(boids) {
   this.render();
 };
 
+Boid.prototype.die = function(obs) {
+  for(var i=0;i<obs.length;i++){
+    if(p5.Vector.dist(obs[i].position,this.position)<1){
+      return true;
+    }
+  }
+};
 // Forces go into acceleration
 Boid.prototype.applyForce = function(force) {
   this.acceleration.add(force);
