@@ -23,18 +23,20 @@ Boid.prototype.applyForce = function(force) {
 
 // We accumulate a new acceleration each time based on three rules
 Boid.prototype.flock = function(boids) {
-  var sep = this.separate(boids); // Separation
-  var ali = this.align(boids);    // Alignment
-  var coh = this.cohesion(boids); // Cohesion
-  // Arbitrarily weight these forces
-  sep.mult(2.5);
-  ali.mult(1.0);
-  coh.mult(1.0);
-  // Add the force vectors to acceleration
-  this.applyForce(sep);
-  this.applyForce(ali);
-  this.applyForce(coh);
-  //this.applyForce(createVector(1,0));
+  if(this!=masterBoid){
+    var sep = this.separate(boids); // Separation
+    var ali = this.align(boids);    // Alignment
+    var coh = this.cohesion(boids); // Cohesion
+    // Arbitrarily weight these forces
+    sep.mult(2.5);
+    ali.mult(1.0);
+    coh.mult(1.0);
+    // Add the force vectors to acceleration
+    this.applyForce(sep);
+    this.applyForce(ali);
+    this.applyForce(coh);
+    //this.applyForce(createVector(1,0));
+  }
 };
 
 // Method to update location
@@ -63,13 +65,17 @@ Boid.prototype.seek = function(target) {
 
 // Draw boid as a circle
 Boid.prototype.render = function() {
+
   head = p5.Vector.add(this.position, p5.Vector.mult(this.velocity,10/this.velocity.mag()));
 	orth = new p5.Vector(-this.velocity.y, this.velocity.x).normalize();
   inverseVel = p5.Vector.add(this.position, p5.Vector.mult(this.velocity,-10/this.velocity.mag()));
 	p2 = p5.Vector.add(inverseVel,p5.Vector.mult(orth,6));
 	p1 = p5.Vector.add(inverseVel,p5.Vector.mult(orth,-6));
-	fill(255,255,255);
-	triangle(p1.x, p1.y, head.x, head.y, p2.x, p2.y);
+  if(this==masterBoid)
+    fill(0,255,0);
+  else
+	  fill(255,255,255);
+  triangle(p1.x, p1.y, head.x, head.y, p2.x, p2.y);
 };
 
 // Wraparound
@@ -106,6 +112,11 @@ Boid.prototype.separate = function(boids) {
 
   // As long as the vector is greater than 0
   if (steer.mag() > 0) {
+    //follow leader
+    var d = p5.Vector.dist(this.position, masterBoid.position);
+    if ((d > 0) && (d < desiredseparation)) {
+      steer.add(p5.Vector.sub(steer, masterBoid.position)).div(2);
+    }
     // Implement Reynolds: Steering = Desired - Velocity
     steer.normalize();
     steer.mult(this.maxspeed);
@@ -134,6 +145,11 @@ Boid.prototype.align = function(boids) {
     sum.mult(this.maxspeed);
     var steer = p5.Vector.sub(sum, this.velocity);
     steer.limit(this.maxforce);
+    //check if we need to follow the leader
+    var d = p5.Vector.dist(this.position, masterBoid.position);
+    if ((d > 0) && (d < neighbordist)) {
+      steer.add(masterBoid.velocity).div(2);
+    }
     return steer;
   } else {
     return createVector(0, 0);
@@ -155,6 +171,11 @@ Boid.prototype.cohesion = function(boids) {
   }
   if (count > 0) {
     sum.div(count);
+    //follow leader
+    var d = p5.Vector.dist(this.position, masterBoid.position);
+    if ((d > 0) && (d < neighbordist)) {
+      sum.add(masterBoid.position).div(2);
+    }
     return this.seek(sum); // Steer towards the location
   } else {
     return createVector(0, 0);
