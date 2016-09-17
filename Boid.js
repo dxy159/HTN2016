@@ -19,10 +19,26 @@ Boid.prototype.run = function(boids) {
 
 Boid.prototype.die = function(obs) {
   for(var i=0;i<obs.length;i++){
-    if(p5.Vector.dist(obs[i].position,this.position)<1){
+    if(p5.Vector.dist(obs[i].position,this.position)<obs[i].r){
       return true;
     }
   }
+};
+Boid.prototype.eat = function(foods) {
+  let c=0;
+  for(var i=0;i<foods.length;i++){
+    if(p5.Vector.dist(foods[i].position,this.position)<foods[i].r){
+      c++;
+      foods.splice(foods.findIndex(function(el,idx, a) {
+                                    if (foods[i].position.x === el.position.x && foods[i].position.y === el.position.y) {
+                                      return true;
+                                    }
+                                    return false;
+                                  }),1);
+
+    }
+  }
+  return c*5;
 };
 // Forces go into acceleration
 Boid.prototype.applyForce = function(force) {
@@ -97,7 +113,7 @@ Boid.prototype.borders = function() {
 // Separation
 // Method checks for nearby boids and steers away
 Boid.prototype.separate = function(boids) {
-  var desiredseparation = 25.0;
+  var desiredseparation = 30.0;
   var steer = createVector(0, 0);
   var count = 0;
   // For every boid in the system, check if it's too close
@@ -123,7 +139,7 @@ Boid.prototype.separate = function(boids) {
     //follow leader
     var d = p5.Vector.dist(this.position, masterBoid.position);
     if ((d > 0) && (d < desiredseparation)) {
-      steer.add(p5.Vector.sub(steer, masterBoid.position)).div(2);
+      steer.add(p5.Vector.sub(steer, p5.Vector.div(masterBoid.position,2))).div(2);
     }
     // Implement Reynolds: Steering = Desired - Velocity
     steer.normalize();
@@ -156,7 +172,7 @@ Boid.prototype.align = function(boids) {
     //check if we need to follow the leader
     var d = p5.Vector.dist(this.position, masterBoid.position);
     if ((d > 0) && (d < neighbordist)) {
-      steer.add(masterBoid.velocity).div(2);
+      steer.add(p5.Vector.div(masterBoid.velocity,2)).div(2);
     }
     return steer;
   } else {
@@ -182,7 +198,7 @@ Boid.prototype.cohesion = function(boids) {
     //follow leader
     var d = p5.Vector.dist(this.position, masterBoid.position);
     if ((d > 0) && (d < neighbordist)) {
-      sum.add(masterBoid.position).div(2);
+      sum.add(p5.Vector.div(masterBoid.position,2)).div(2);
     }
     return this.seek(sum); // Steer towards the location
   } else {

@@ -7,6 +7,6 @@ Obstacle.prototype.run = function(){
   this.draw();
 }
 Obstacle.prototype.draw = function(){
-  fill(100,255,100);
+  fill(255,100,100);
   ellipse(this.position.x,this.position.y,this.r,this.r);
 };
