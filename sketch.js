@@ -2,12 +2,12 @@ flock=[];
 function setup() {
 	//create canvas
 	createCanvas(720, 400);
-	
+
 }
 
 function draw() {
 
-	//set background colour
+	 //set background colour
   	background(0);
   	//fill colour
   	fill(0, 180, 180);
@@ -26,9 +26,9 @@ function Boid(x, y) {
   //create the position from mouse pointer position
   this.pos=createVector(x,y);
   //assign a velocity between (0,5) to the boid
-  this.vel=p5.createVector(Math.random()*5,(Math.random()*5));
+  this.vel=createVector(Math.random()*5,(Math.random()*5));
   //assign random RGB value for the color of the boid
-  this.color=p5.createVector((Math.random()*255),Math.random()*255,Math.random()*255);
+  this.color=createVector((Math.random()*255),Math.random()*255,Math.random()*255);
   //assigne vision raduis for this boid from range (5,15)
   this.radius=(Math.random()*10+5);
   //an array to store friends
@@ -40,7 +40,7 @@ function Boid(x, y) {
   }
   set friends(){
     for(var b:flock){
-      if(p5.Vector.dist(this.pos.x,this.pos.y,b.pos.x,b.pos.y)<this.radius){
+      if(Vector.dist(this.pos.x,this.pos.y,b.pos.x,b.pos.y)<this.radius){
         this.f.append(b);
       }
     }
@@ -90,7 +90,13 @@ Boid.prototype.allignment = function () {
 
 Boid.prototype.update = function () {
     //let he boid obey the three rules of the flock
-    p5.Vector cohesionRuleVector=this.cohesion();
-    p5.Vector seperationRuleVector=this.seperation();
-    p5.Vector alignmentRuleVector=this.alignment();
+    //first we get the points of attraction and seperation
+    Vector cohesionRulePoint=this.cohesion();
+    Vector seperationRulePoint=this.seperation();
+    //we generate attraction vector for both points
+    Vector v1=attract(cohesionRulePoint,0.6);
+    Vector v2=attract(seperationRulePoint,0.2);
+    // update the velocity
+    this.vel=v1+v2+this.alignment()+this.vel;
+
 };
