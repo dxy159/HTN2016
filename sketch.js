@@ -7,6 +7,7 @@ function setup() {
 
 function draw() {
   	fill(0, 180, 180);
+		background(0);
 		for(var i=0;i<flock.length;i++)
 			flock[i].update();
 }
@@ -16,7 +17,7 @@ function Boid(x, y) {
   //create the position from mouse pointer position
   this.pos = new p5.Vector(x,y);
   //assign a velocity between (0,5) to the boid
-  this.vel=p5.Vector.random2D().mult(3);
+  this.vel= p5.Vector.random2D();
   //assign random RGB value for the color of the boid
   //this.color=p5.Vector((Math.random()*255),Math.random()*255,Math.random()*255);
   //assigne vision raduis for this boid from range (5,15)
@@ -27,7 +28,6 @@ function Boid(x, y) {
 
   //add this boid to the global flock variable
   flock.push(this);
-
 
 }
 
@@ -50,13 +50,15 @@ Boid.prototype.draw = function () {
 };
 
 var boid = new Boid(100, 100)
+var boid = new Boid(100, 120)
+var boid = new Boid(100, 125)
+var boid = new Boid(100, 130)
+var boid = new Boid(100, 135)
 
 Boid.prototype.rotate = function (angle) {
 	rotate(angle);
 }
-p5.Vector.prototype.mag=function(){
-	return Math.sqrt((this.x*this.x)+(this.y*this.y));
-}
+
 Boid.prototype.attract = function (targetPos, coeff) {
   var targetVel = p5.Vector.sub(targetPos, this.pos); // defines a target velocity to get from original position to target position
   targetVel.normalize().mult(this.vel.mag()); // normalize the vector so it is not too long
@@ -103,10 +105,12 @@ Boid.prototype.update = function () {
     //let he boid obey the three rules of the flock
     //first we get the points of attraction and seperation
     cohesionRulePoint=this.cohesion();
-    seperationRulePoint=this.separation();
+    //seperationRulePoint=this.separation();
     //we generate attraction vector for both points
-    v1=this.attract(cohesionRulePoint,0.6);
-    v2=this.attract(seperationRulePoint,0.2);
+    v1=this.attract(cohesionRulePoint,0.2);
+    //v2=this.attract(seperationRulePoint,0.2);
     // update the velocity
-    this.vel=v1+v2+this.alignment()+this.vel;
+    this.vel.add(v1/*.add(v2)*/.add(this.alignment()));
+		this.pos.add(this.vel);
+		this.draw();
 };
