@@ -34,6 +34,7 @@ Boid.prototype.flock = function(boids) {
   this.applyForce(sep);
   this.applyForce(ali);
   this.applyForce(coh);
+  //this.applyForce(createVector(1,0));
 };
 
 // Method to update location
