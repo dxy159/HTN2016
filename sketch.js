@@ -17,28 +17,29 @@ function Boid(x, y) {
   //create the position from mouse pointer position
   this.pos = new p5.Vector(x,y);
   //assign a velocity between (0,5) to the boid
-  this.vel= p5.Vector.random2D();
+  this.vel= new p5.Vector(Math.random(-1,1),Math.random(-1,1));
   //assign random RGB value for the color of the boid
   //this.color=p5.Vector((Math.random()*255),Math.random()*255,Math.random()*255);
-  //assigne vision raduis for this boid from range (5,15)
+  //assigne vision radius for this boid from range (5,15)
   this.radius=100;//(Math.random()*10+5);
-
-
-  //setter and getter for friends
+	this.friends=[];
 
   //add this boid to the global flock variable
   flock.push(this);
-
+	//timer to make things more efficiant
+	this.timer=0;
 }
 
-Boid.prototype.getfriends= function(){
-	f=[];
+Boid.prototype.getfriends= function(timer){
+	if(timer%10!=0)
+			return this.friends;
+	this.friends=[];
 	for(var i;i<flock.length;i++){
 		if(Vector.dist(this.pos.x,this.pos.y,flock[i].pos.x,flock[i].pos.y)<this.radius){
-			f.push(b);
+			friends.push(b);
 		}
 	}
-	return f;
+	return this.friends;
 }
 Boid.prototype.draw = function () {
 	head = p5.Vector.add(this.pos, this.vel.normalize().mult(10));
@@ -50,74 +51,105 @@ Boid.prototype.draw = function () {
 };
 
 var boid = new Boid(300, 100)
+var boid = new Boid(300, 150)
 var boid = new Boid(300, 120)
-var boid = new Boid(300, 125)
-var boid = new Boid(300, 130)
-var boid = new Boid(300, 135)
+var boid = new Boid(330, 120)
+var boid = new Boid(310, 190)
 
 Boid.prototype.rotate = function (angle) {
 	rotate(angle);
 }
 
-Boid.prototype.attract = function (targetPos, coeff) {
-  var targetVel = p5.Vector.sub(targetPos, this.pos); // defines a target velocity to get from original position to target position
-  targetVel.normalize().mult(this.vel.mag()); // normalize the vector so it is not too long
+//Boid.prototype.attract = function (targetPos, coeff) {
+//  var targetVel = p5.Vector.sub(targetPos, this.pos); // defines a target velocity to get from original position to target position
+//  targetVel.normalize().mult(this.vel.mag()); // normalize the vector so it is not too long
    // make the target vector the same size as the velocity
   // difference between target velocity and velocity will align the boid to go to the target position (mult by 0.60 so that they don't align too fast)
-  return p5.Vector.sub(targetVel, this.vel).normalize().mult(this.vel.mag()).mult(coeff);
-};
+//  return p5.Vector.sub(targetVel, this.vel).normalize().mult(this.vel.mag()).mult(coeff);
+//};
 
 Boid.prototype.cohesion = function () {
-  let avgPos = new p5.Vector(0,0) // average position of all the neighbours
-	let neighbours=this.getfriends();
-	if(neighbours.length==0)
-		return this.vel;
-  for (let i = 0; i < neighbours.length ; i++) {
-    avgPos.add(neighbours[i].pos); // looks through all the neighbours and add their position to avgPos
-  }
-  return avgPos.div(neighbours.length); // return the sum of all the position divided by the number of neighbours
+		neighbordist = 50;
+    sum = new p5.Vector(0, 0);
+    c = 0;
+		this.getfriends(this.timer);
+    for (var i=0;i<this.friends.length;i++) {
+      d = this.pos.dist(this.friends[i].pos);
+      if ((d > 0) && (d < 100)) {
+        sum.add(this.friends[i].pos);
+        c++;
+      }
+    }
+    if (c > 0) {
+      sum.div(c);
+			return sum;
+    }
+    else {
+      return new p5.Vector(0, 0);
+    }
 };
 
 Boid.prototype.separation = function () {
   let avgPos = new p5.Vector(0,0);
-  let c = 0;
-	let neighbours=this.getfriends();
-  for (let i = 0; i < neighbours.length; i++) {
-    if (p5.Vector.dist(this.pos, neighbours[i].pos) < this.minDist) { //look if the neighbour is too close
-      avgPos.add(neighbours.pos); // then, sum points like in cohesion
-      c++ // keep in memory how many boids are too close to average
-    }
+	this.getfriends(this.timer);
+  for (let i = 0; i < this.friends.length; i++) {
+		let d=this.pos.dist(this.friends[i].pos);
+		if((d>=0)&&(d<this.radius)){
+				temp= this.pos;
+				temp.sub(this.friends[i].pos);
+				temp.normalize();
+				temp.div(d);
+				avgPos.add(temp);
+			}
   }
-	if(c==0)
-		return this.vel;
-  return avgPos.div(c); // average from the sum (the vector from attract will be multiplied by a negative so it goes away from this point)
+  return avgPos; // average from the sum (the vector from attract will be multiplied by a negative so it goes away from this point)
 };
 
 Boid.prototype.alignment = function () {
   let avgVel = new p5.Vector(0,0); // average Velocity of all the neighbours
-	let neighbours=this.getfriends();
-	if(neighbours.length==0)
+	this.getfriends(this.timer);
+	if(this.friends.length==0)
 		return this.vel;
-  for (let i = 0; i < neighbours.length; i++) {
-    avgVel.add(neighbours[i].vel); // sum of all the velocities
+  for (let i = 0; i < this.friends.length; i++) {
+		let d=this.pos.dist(this.friends[i].pos);
+		if((d>=0)&&(d<this.radius)){
+				temp= this.friends[i].vel.copy();
+				temp.normalize();
+				temp.div(d);
+				avgVel.add(temp);
+			}
   }
-  avgVel.normalize().mult(this.vel.mag()); // sum divided by number of neighbours = avg
-  // difference between target velocity and velocity is the vector that will allign the boid (we multiply by 0.45 so the boids don't get aligned too quickly)
-  return p5.Vector.sub(avgVel, this.vel).mult(1.125);
-
+  return sum;
 };
-
+// this function will allow boids to warp  left/right and up/down
+Boid.prototype.continue = function(){
+	this.pos.x = (this.pos.x + width) % width;
+	this.pos.y = (this.pos.y + height) % height;
+};
 Boid.prototype.update = function () {
+		this.continue();
     //let he boid obey the three rules of the flock
     //first we get the points of attraction and seperation
-    cohesionRulePoint=this.cohesion();
-    seperationRulePoint=this.separation();
-    //we generate attraction vector for both points
-    v1=this.attract(cohesionRulePoint,0.5);
-    v2=this.attract(seperationRulePoint,0.002);
-    // update the velocity
-    this.vel.add(v1.add(v2.add(this.alignment())));
-		console.log(v1);
+		v1=this.cohesion();
+		v2=this.alignment();
+		v3=this.separation();
+		this.vel.add(v1);
+		this.vel.add(v2);
+		this.vel.add(v3);
+		//keep things in track
+		if(this.vel.x>1)
+			this.vel.x=1;
+		if(this.vel.y>1)
+			this.vel.y=1;
+		if(this.vel.x<-1)
+			this.vel.x=-1;
+		if(this.vel.y<-1)
+			this.vel.y=-1;
+
 		this.pos.add(this.vel);
 		this.draw();
 };
+function onMouseClick(event) {
+  new Boid(event.clientX,event.clientY);
+}
+document.addEventListener("click", onMouseClick);
