@@ -1,4 +1,4 @@
-flock=Boid[];
+flock=[];
 function setup() {
 	//create canvas
 	createCanvas(720, 400);
@@ -6,7 +6,7 @@ function setup() {
 }
 
 function draw() {
-<<<<<<< HEAD
+
 	//set background colour
   	background(0);
   	//fill colour
@@ -21,14 +21,14 @@ draw();
 rotate();
 
 
-function Boid(int x,int y) {
+function Boid(x, y) {
 
   //create the position from mouse pointer position
-  this.pos=p5.createVector(x,y);
+  this.pos=createVector(x,y);
   //assign a velocity between (0,5) to the boid
-  this.vel=p5.createVector((Math.random()*5,(Math.random()*5);
+  this.vel=p5.createVector(Math.random()*5,(Math.random()*5));
   //assign random RGB value for the color of the boid
-  this.color=p5.createVector((Math.random()*255,Math.random()*255,Math.random()*255);
+  this.color=p5.createVector((Math.random()*255),Math.random()*255,Math.random()*255);
   //assigne vision raduis for this boid from range (5,15)
   this.radius=(Math.random()*10+5);
   //an array to store friends
@@ -47,7 +47,6 @@ function Boid(int x,int y) {
   }
   //add this boid to the global flock variable
   flock.append(this);
->>>>>>> 3d40fb405a9b5602128701082f2a7d5f51a70b6c
 
 	get p1() {
 		return createVector(this.pos.x - 6, this.pos.y - 10);
@@ -64,8 +63,14 @@ function Boid(int x,int y) {
 
 Boid.prototype.draw = function () {
 	fill(Math.random() * 255);
-	triangle(30, 75, 36, 55, 42, 75);
+	triangle(this.p1().x, this.p1().y, this.p2().x, this.p2().y, this.p3().x, this.p3().y);
 };
+
+var boid = new Boid(100, 100)
+
+Boid.prototype.rotate = function (angle) {
+	rotate(angle);
+}
 
 Boid.prototype.attract = function () {
 
