@@ -1,16 +1,28 @@
 // Boid class taken from https://p5js.org/examples/demos/Hello_P5_Flocking.php and slightly modified
 // Methods for Separation, Cohesion, Alignment added
-function Boid(x, y) {
+function Boid(x, y, orientation) { //orientation will be 1 if it goes to the right and -1 if it goes to the left
   this.acceleration = createVector(0, 0);
   this.velocity = p5.Vector.random2D();
   this.position = createVector(x, y);
+  this.opponent = orientation < 0 ? game.pad2 : game.pad1
+  this.color =  orientation < 0 ? createVector(255, 255, 0) : createVector(255,0,255)
+  this.orientation = createVector(orientation * 0.1 , 0)
   this.r = 3.0;
   this.maxspeed = 3;    // Maximum speed
   this.maxforce = 0.05; // Maximum steering force
 }
 
 Boid.prototype.run = function(boids) {
+  let self = this;
   this.flock(boids);
+  if (this.collision(this.opponent)) {
+    boids.splice(boids.findIndex(function(el, i, a) {
+                                  if (self.position.x === el.position.x && self.position.y === el.position.y) {
+                                    return true;
+                                  }
+                                  return false;
+                                }),1);
+  }
   this.update();
   this.borders();
   this.render();
@@ -28,13 +40,13 @@ Boid.prototype.flock = function(boids) {
   var coh = this.cohesion(boids); // Cohesion
   // Arbitrarily weight these forces
   sep.mult(2.5);
-  ali.mult(1.0);
+  ali.mult(1.5);
   coh.mult(1.0);
   // Add the force vectors to acceleration
   this.applyForce(sep);
   this.applyForce(ali);
   this.applyForce(coh);
-  //this.applyForce(createVector(1,0));
+  this.applyForce(this.orientation); // makes the boid go to one direction
 };
 
 // Method to update location
@@ -68,7 +80,7 @@ Boid.prototype.render = function() {
   inverseVel = p5.Vector.add(this.position, p5.Vector.mult(this.velocity,-10/this.velocity.mag()));
 	p2 = p5.Vector.add(inverseVel,p5.Vector.mult(orth,6));
 	p1 = p5.Vector.add(inverseVel,p5.Vector.mult(orth,-6));
-	fill(255,255,255);
+	fill(this.color.x, this.color.y, this.color.z);
 	triangle(p1.x, p1.y, head.x, head.y, p2.x, p2.y);
 };
 
@@ -158,5 +170,15 @@ Boid.prototype.cohesion = function(boids) {
     return this.seek(sum); // Steer towards the location
   } else {
     return createVector(0, 0);
+  }
+};
+
+Boid.prototype.collision = function (pad) {
+  if ( pad.collidePoint(p5.Vector.add(this.position, p5.Vector.mult(this.velocity,10/this.velocity.mag()))) ) {
+    pad.color.add(p5.Vector.div(this.color ,255));
+    if (pad.color.mag() === this.color.mag()) {
+      alert("Pad " + (Math.sign(this.orientation.x)*1/2+3/2) + " won !")
+    }
+    return true;
   }
 };
