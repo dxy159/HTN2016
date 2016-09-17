@@ -13,13 +13,6 @@ function draw() {
   	fill(0, 180, 180);
 }
 
-function rotate() {
-	rotate(PI/3.0);
-}
-
-draw();
-rotate();
-
 
 function Boid(x, y) {
 
