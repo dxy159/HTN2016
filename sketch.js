@@ -20,23 +20,6 @@ function rotate() {
 draw();
 rotate();
 
-function Boid() {
-
-	get p1() {
-		return createVector(this.pos.x - 6, this.pos.y - 10);
-	}
-
-	get p2() {
-		return createVector(this.pos.x, this.pos.y + 10);
-	}
-
-	get p3() {
-		return createVector(this.pos.x + 6, this.pos.y - 10);
-	}
-
-=======
-  
-}
 
 function Boid(int x,int y) {
 
@@ -65,6 +48,18 @@ function Boid(int x,int y) {
   //add this boid to the global flock variable
   flock.append(this);
 >>>>>>> 3d40fb405a9b5602128701082f2a7d5f51a70b6c
+
+	get p1() {
+		return createVector(this.pos.x - 6, this.pos.y - 10);
+	}
+
+	get p2() {
+		return createVector(this.pos.x, this.pos.y + 10);
+	}
+
+	get p3() {
+		return createVector(this.pos.x + 6, this.pos.y - 10);
+	}
 }
 
 Boid.prototype.draw = function () {
