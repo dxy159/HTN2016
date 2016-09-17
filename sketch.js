@@ -21,7 +21,7 @@ function Boid(x, y) {
   //assign random RGB value for the color of the boid
   //this.color=p5.Vector((Math.random()*255),Math.random()*255,Math.random()*255);
   //assigne vision raduis for this boid from range (5,15)
-  this.radius=(Math.random()*10+5);
+  this.radius=100;//(Math.random()*10+5);
 
 
   //setter and getter for friends
@@ -49,11 +49,11 @@ Boid.prototype.draw = function () {
 	triangle(p1.x, p1.y, head.x, head.y, p2.x, p2.y);
 };
 
-var boid = new Boid(100, 100)
-var boid = new Boid(100, 120)
-var boid = new Boid(100, 125)
-var boid = new Boid(100, 130)
-var boid = new Boid(100, 135)
+var boid = new Boid(300, 100)
+var boid = new Boid(300, 120)
+var boid = new Boid(300, 125)
+var boid = new Boid(300, 130)
+var boid = new Boid(300, 135)
 
 Boid.prototype.rotate = function (angle) {
 	rotate(angle);
@@ -70,6 +70,8 @@ Boid.prototype.attract = function (targetPos, coeff) {
 Boid.prototype.cohesion = function () {
   let avgPos = new p5.Vector(0,0) // average position of all the neighbours
 	let neighbours=this.getfriends();
+	if(neighbours.length==0)
+		return this.vel;
   for (let i = 0; i < neighbours.length ; i++) {
     avgPos.add(neighbours[i].pos); // looks through all the neighbours and add their position to avgPos
   }
@@ -86,18 +88,22 @@ Boid.prototype.separation = function () {
       c++ // keep in memory how many boids are too close to average
     }
   }
+	if(c==0)
+		return this.vel;
   return avgPos.div(c); // average from the sum (the vector from attract will be multiplied by a negative so it goes away from this point)
 };
 
 Boid.prototype.alignment = function () {
   let avgVel = new p5.Vector(0,0); // average Velocity of all the neighbours
 	let neighbours=this.getfriends();
+	if(neighbours.length==0)
+		return this.vel;
   for (let i = 0; i < neighbours.length; i++) {
     avgVel.add(neighbours[i].vel); // sum of all the velocities
   }
-  avgVel.div(neighbours.length); // sum divided by number of neighbours = avg
+  avgVel.normalize().mult(this.vel.mag()); // sum divided by number of neighbours = avg
   // difference between target velocity and velocity is the vector that will allign the boid (we multiply by 0.45 so the boids don't get aligned too quickly)
-  return p5.Vector.sub(avgVel, this.vel).mult(0.45);
+  return p5.Vector.sub(avgVel, this.vel).mult(1.125);
 
 };
 
@@ -105,12 +111,13 @@ Boid.prototype.update = function () {
     //let he boid obey the three rules of the flock
     //first we get the points of attraction and seperation
     cohesionRulePoint=this.cohesion();
-    //seperationRulePoint=this.separation();
+    seperationRulePoint=this.separation();
     //we generate attraction vector for both points
-    v1=this.attract(cohesionRulePoint,0.2);
-    //v2=this.attract(seperationRulePoint,0.2);
+    v1=this.attract(cohesionRulePoint,0.5);
+    v2=this.attract(seperationRulePoint,0.002);
     // update the velocity
-    this.vel.add(v1/*.add(v2)*/.add(this.alignment()));
+    this.vel.add(v1.add(v2.add(this.alignment())));
+		console.log(v1);
 		this.pos.add(this.vel);
 		this.draw();
 };
